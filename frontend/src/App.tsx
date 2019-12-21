@@ -5,10 +5,10 @@ import { Chat } from "./components/Chat";
 import { NotFound } from "./components/NotFound";
 import { makeStyles, Theme } from "@material-ui/core";
 import { UserProvider } from "./context/UserContext";
+import './App.css';
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
-    margin: "5px",
     height: "100vh"
   }
 }));
