@@ -1,0 +1,1 @@
+MONGO_URL = "mongodb+srv://test:test@realtime-chat-oag4s.mongodb.net/Chat?retryWrites=true&w=majority"
