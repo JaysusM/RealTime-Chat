@@ -16,6 +16,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     display: "flex",
     alignItems: "center",
     height: "100%",
+    background: "url('wallpaper.jpeg')",
+    backgroundSize: "cover",
+    backgroundRepeat: "no-repeat",
     justifyContent: "center"
   },
   loginCardHeader: {

@@ -14,6 +14,8 @@ import { Message as MessageModel } from "../models/Message";
 import { getMessages, BASE_API_URL } from "../services/api";
 import socketIOClient from "socket.io-client";
 import { Message } from "./Message";
+import { take } from "rxjs/operators";
+import { Subscription } from "rxjs/internal/Subscription";
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -27,22 +29,24 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginTop: "5px",
     height: "55px",
     display: "flex",
+    padding: "10px",
+    backgroundColor: "#FFF"
   },
   messageContainer: {
     marginTop: "64px",
     display: "flex",
     flexDirection: "column",
-    flexGrow: 1
+    flexGrow: 1,
+    background: "url('wallpaper.jpeg')",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "cover"
   },
   messages: {
     padding: "5px",
     flexGrow: 1,
     display: "flex",
     flexDirection: "column",
-    overflowY: "scroll",
-    background: "url('wallpaper.jpeg')",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "cover"
+    overflowY: "scroll"
   },
   sendMessage: {
     flexGrow: 8
@@ -70,10 +74,16 @@ export const Chat: React.FC = () => {
 
   useEffect(() => {
     setSocket(socketIOClient(BASE_API_URL as string));
-    getMessages().subscribe((messages: MessageModel[]) =>
-      setMessages(messages)
-    );
+    const subscriptionMessages: Subscription = getMessages()
+      .pipe(take(1))
+      .subscribe((messages: MessageModel[]) => setMessages(messages));
     scrollToBottom();
+
+    return () => {
+      subscriptionMessages.unsubscribe();
+      socket?.close();
+    };
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -86,13 +96,12 @@ export const Chat: React.FC = () => {
     // eslint-disable-next-line
   }, [messages]);
 
-  if (!user) return <Redirect to="/" />;
-
   const sendMessage = () => {
     if (socket) {
       const message: MessageModel = {
         username: user,
-        content: currentMessage
+        content: currentMessage,
+        datetime: Date.now()
       };
       socket.send(message);
       setCurrentMessage("");
@@ -106,6 +115,8 @@ export const Chat: React.FC = () => {
   const clearUsername = () => {
     setUsername("");
   };
+
+  if (!user) return <Redirect to="/" />;
 
   return (
     <div className={classes.root}>
@@ -122,7 +133,7 @@ export const Chat: React.FC = () => {
       <div className={classes.messageContainer}>
         <div id="messages" className={classes.messages}>
           {messages.map((message: MessageModel) =>
-            Message({ message: message })
+            React.createElement(Message, { message: message, key: message._id?.$oid.toString() })
           )}
         </div>
         <div className={classes.sendContainer}>
