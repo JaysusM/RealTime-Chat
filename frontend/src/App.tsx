@@ -4,7 +4,7 @@ import { Login } from "./components/Login";
 import { Chat } from "./components/Chat";
 import { NotFound } from "./components/NotFound";
 import { makeStyles, Theme } from "@material-ui/core";
-import { UserProvider } from "./context/UserContext";
+import { ConnectionProvider } from "./context/ConnectionContext";
 import './App.css';
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -18,7 +18,7 @@ const App: React.FC = () => {
 
   return (
     <div className={classes.root}>
-      <UserProvider>
+      <ConnectionProvider>
         <BrowserRouter>
           <Switch>
             <Route exact path="/" component={Login} />
@@ -26,7 +26,7 @@ const App: React.FC = () => {
             <Route component={NotFound} />
           </Switch>
         </BrowserRouter>
-      </UserProvider>
+      </ConnectionProvider>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { UserContext } from "../context/UserContext";
+import { ConnectionContext } from "../context/ConnectionContext";
 import { Redirect } from "react-router-dom";
 import {
   Typography,
@@ -11,11 +11,10 @@ import {
   TextField
 } from "@material-ui/core";
 import { Message as MessageModel } from "../models/Message";
-import { getMessages, BASE_API_URL } from "../services/api";
-import socketIOClient from "socket.io-client";
-import { Message } from "./Message";
+import { getMessages } from "../services/api";
 import { take } from "rxjs/operators";
 import { Subscription } from "rxjs/internal/Subscription";
+import { Message } from "./Message";
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -59,10 +58,9 @@ const useStyles = makeStyles((theme: Theme) => ({
 }));
 
 export const Chat: React.FC = () => {
-  const [user, setUsername] = useContext(UserContext);
+  const [connection, setConnection] = useContext(ConnectionContext);
   const [messages, setMessages] = useState<MessageModel[]>([]);
   const [currentMessage, setCurrentMessage] = useState<String>("");
-  const [socket, setSocket] = useState<SocketIOClient.Socket>();
   const classes = useStyles();
 
   const scrollToBottom = () => {
@@ -73,37 +71,40 @@ export const Chat: React.FC = () => {
   };
 
   useEffect(() => {
-    setSocket(socketIOClient(BASE_API_URL as string));
-    const subscriptionMessages: Subscription = getMessages()
+    const subscriptionMessages: Subscription = getMessages(connection.room)
       .pipe(take(1))
       .subscribe((messages: MessageModel[]) => setMessages(messages));
     scrollToBottom();
 
     return () => {
       subscriptionMessages.unsubscribe();
-      socket?.close();
+      if (connection.socket) {
+        connection.socket.emit("disconnection", {...connection, socket: undefined})
+      }
+      connection.socket?.close();
     };
     // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
-    if (socket) {
-      socket.on("message", (message: any) =>
+    if (connection.socket) {
+      connection.socket.on("message", (message: any) =>
         setMessages([...messages, JSON.parse(message)])
       );
+      scrollToBottom();
     }
-    scrollToBottom();
     // eslint-disable-next-line
   }, [messages]);
 
   const sendMessage = () => {
-    if (socket) {
+    if (connection.socket) {
       const message: MessageModel = {
-        username: user,
+        username: connection.username,
         content: currentMessage,
+        room: connection.room,
         datetime: Date.now()
       };
-      socket.send(message);
+      connection.socket.send(message);
       setCurrentMessage("");
     }
   };
@@ -113,17 +114,17 @@ export const Chat: React.FC = () => {
   };
 
   const clearUsername = () => {
-    setUsername("");
+    setConnection("");
   };
 
-  if (!user) return <Redirect to="/" />;
+  if (!connection || !(connection.socket)) return <Redirect to="/" />;
 
   return (
     <div className={classes.root}>
       <AppBar>
         <Toolbar>
           <Typography variant="h6" className={classes.title}>
-            RealTime Chat
+            RealTime Chat - {connection.room}
           </Typography>
           <Button onClick={clearUsername} color="inherit">
             Log out
@@ -133,7 +134,10 @@ export const Chat: React.FC = () => {
       <div className={classes.messageContainer}>
         <div id="messages" className={classes.messages}>
           {messages.map((message: MessageModel) =>
-            React.createElement(Message, { message: message, key: message._id?.$oid.toString() })
+            React.createElement(Message, {
+              message: message,
+              key: message._id?.$oid.toString()
+            })
           )}
         </div>
         <div className={classes.sendContainer}>

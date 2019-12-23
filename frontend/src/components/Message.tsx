@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Message as MessageModel } from "../models/Message";
-import { UserContext } from "../context/UserContext";
+import { ConnectionContext } from "../context/ConnectionContext";
 import { makeStyles, Theme } from "@material-ui/core";
 
 interface MessageProps {
@@ -55,11 +55,11 @@ const unixTimeStampToString = (timestamp: Number | undefined) => {
 };
 
 export const Message = (props: MessageProps) => {
-  const [user] = useContext(UserContext);
+  const [connection] = useContext(ConnectionContext);
   const classes = useStyles();
 
   return (
-    <div className={props.message.username !== user ? classes.messageContainer : classes.ownMessageContainer}>
+    <div className={props.message.username !== connection.username ? classes.messageContainer : classes.ownMessageContainer}>
       <div className={classes.messageHeader}>
         <h3>{props.message.username}</h3>
       </div>
