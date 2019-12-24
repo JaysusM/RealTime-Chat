@@ -3,9 +3,9 @@
 This is a simple real-time chat made using ReactJS, Flask and Socket.io
 
 ### Screenshots
-<img src="https://i.imgur.com/uVioeTb.png"/>
+<img src="http://i.imgur.com/r5QBtHE.png"/>
 <br/>
-<img src="https://i.imgur.com/DTnNT59.png"/>
+<img src="http://i.imgur.com/Gtwc9Qc.png"/>
 
 ### How to run backend?
 
